@@ -149,3 +149,4 @@ $ docker start -a -i bustub
 ```
 
 to open a shell within the box. You can find Bustub's code mounted at `/bustub` and run the commands mentioned above like normal.
+...
