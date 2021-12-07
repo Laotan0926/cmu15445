@@ -119,7 +119,7 @@ class ExtendibleHashTable {
    * @param dir_page a pointer to the hash table's directory page
    * @return the bucket page_id corresponding to the input key
    */
-  inline uint32_t KeyToPageId(KeyType key, HashTableDirectoryPage *dir_page);
+  inline page_id_t KeyToPageId(KeyType key, HashTableDirectoryPage *dir_page);
 
   /**
    * Fetches the directory page from the buffer pool manager.

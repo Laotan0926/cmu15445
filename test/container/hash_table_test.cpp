@@ -24,11 +24,11 @@ namespace bustub {
 // NOLINTNEXTLINE
 
 // NOLINTNEXTLINE
-TEST(HashTableTest, DISABLED_SampleTest) {
+TEST(HashTableTest, SampleTest) {
   auto *disk_manager = new DiskManager("test.db");
   auto *bpm = new BufferPoolManagerInstance(50, disk_manager);
   ExtendibleHashTable<int, int, IntComparator> ht("blah", bpm, IntComparator(), HashFunction<int>());
-
+  std::cout<<"hah"<<std::endl;
   // insert a few values
   for (int i = 0; i < 5; i++) {
     ht.Insert(nullptr, i, i);
@@ -37,7 +37,7 @@ TEST(HashTableTest, DISABLED_SampleTest) {
     EXPECT_EQ(1, res.size()) << "Failed to insert " << i << std::endl;
     EXPECT_EQ(i, res[0]);
   }
-
+  std::cout<<"hah"<<std::endl;
   ht.VerifyIntegrity();
 
   // check if the inserted values are all there
@@ -47,7 +47,7 @@ TEST(HashTableTest, DISABLED_SampleTest) {
     EXPECT_EQ(1, res.size()) << "Failed to keep " << i << std::endl;
     EXPECT_EQ(i, res[0]);
   }
-
+  std::cout<<"hah1"<<std::endl;
   ht.VerifyIntegrity();
 
   // insert one more value for each key
@@ -75,14 +75,14 @@ TEST(HashTableTest, DISABLED_SampleTest) {
       }
     }
   }
-
+  std::cout<<"hah2"<<std::endl;
   ht.VerifyIntegrity();
 
   // look for a key that does not exist
   std::vector<int> res;
   ht.GetValue(nullptr, 20, &res);
   EXPECT_EQ(0, res.size());
-
+  std::cout<<"res"<<std::endl;
   // delete some values
   for (int i = 0; i < 5; i++) {
     EXPECT_TRUE(ht.Remove(nullptr, i, i));
@@ -96,7 +96,7 @@ TEST(HashTableTest, DISABLED_SampleTest) {
       EXPECT_EQ(2 * i, res[0]);
     }
   }
-
+  std::cout<<"hah3"<<std::endl;
   ht.VerifyIntegrity();
 
   // delete all values
@@ -109,6 +109,7 @@ TEST(HashTableTest, DISABLED_SampleTest) {
     }
   }
 
+  std::cout<<"hah4"<<std::endl;
   ht.VerifyIntegrity();
 
   disk_manager->ShutDown();

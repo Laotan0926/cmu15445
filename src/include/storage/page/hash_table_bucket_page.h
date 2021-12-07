@@ -19,6 +19,7 @@
 #include "storage/index/int_comparator.h"
 #include "storage/page/hash_table_page_defs.h"
 
+
 namespace bustub {
 /**
  * Store indexed key and and value together within bucket page. Supports
@@ -92,6 +93,11 @@ class HashTableBucketPage {
    * @return true if the index is occupied, false otherwise
    */
   bool IsOccupied(uint32_t bucket_idx) const;
+
+  /**
+   * Get Occupied Size
+   */
+  uint32_t GetOccupiedSize() const;
 
   /**
    * SetOccupied - Updates the bitmap to indicate that the entry at
