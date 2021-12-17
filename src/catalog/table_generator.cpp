@@ -90,6 +90,7 @@ void TableGenerator::GenerateTestTables() {
    * with a name, size, and schema. We also configure the columns of the table. If
    * you add a new table, set it up here.
    */
+  
   std::vector<TableInsertMeta> insert_meta{
       // The empty table
       {"empty_table", 0, {{"colA", TypeId::INTEGER, false, Dist::Serial, 0, 0}}},

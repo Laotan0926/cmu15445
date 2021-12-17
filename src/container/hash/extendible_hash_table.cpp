@@ -257,11 +257,11 @@ void HASH_TABLE_TYPE::Merge(Transaction *transaction, const KeyType &key, const 
  *****************************************************************************/
 template <typename KeyType, typename ValueType, typename KeyComparator>
 uint32_t HASH_TABLE_TYPE::GetGlobalDepth() {
-  table_latch_.RLock();
   HashTableDirectoryPage *dir_page = FetchDirectoryPage();
+  table_latch_.RLock();
   uint32_t global_depth = dir_page->GetGlobalDepth();
-  assert(buffer_pool_manager_->UnpinPage(directory_page_id_, false, nullptr));
   table_latch_.RUnlock();
+  assert(buffer_pool_manager_->UnpinPage(directory_page_id_, false, nullptr));
   return global_depth;
 }
 

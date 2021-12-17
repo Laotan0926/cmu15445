@@ -48,10 +48,35 @@ class DistinctExecutor : public AbstractExecutor {
   /** @return The output schema for the distinct */
   const Schema *GetOutputSchema() override { return plan_->OutputSchema(); };
 
+private:
+  DistinctKey MakeDistinctKey(const Tuple *tuple, const Schema *schema) {
+    std::vector<Value> vals;
+    std::size_t columns_size = schema->GetColumnCount();
+    vals.reserve(columns_size);
+
+    for (uint32_t i=0; i<columns_size; i++) {
+      vals.emplace_back(tuple->GetValue(schema,i));
+    }
+    return {vals};
+  }
+
+  DistinctValue MakeDistinctValue(const Tuple *tuple, const Schema *schema) {
+    std::vector<Value> vals;
+    std::size_t columns_size = schema->GetColumnCount();
+    vals.reserve(columns_size);
+
+    for (uint32_t i=0; i<columns_size; i++) {
+      vals.emplace_back(tuple->GetValue(schema,i));
+    }
+    return {vals};
+  }
+
  private:
   /** The distinct plan node to be executed */
   const DistinctPlanNode *plan_;
   /** The child executor from which tuples are obtained */
   std::unique_ptr<AbstractExecutor> child_executor_;
+  /** hash table*/
+  std::unordered_map<DistinctKey,DistinctValue> hash_map_;
 };
 }  // namespace bustub

@@ -18,6 +18,7 @@
 #include "execution/expressions/abstract_expression.h"
 #include "storage/table/tuple.h"
 
+
 namespace bustub {
 /**
  * ColumnValueExpression maintains the tuple index and column index relative to a particular schema or join.
