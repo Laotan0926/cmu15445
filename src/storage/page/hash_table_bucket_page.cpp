@@ -36,6 +36,7 @@ template <typename KeyType, typename ValueType, typename KeyComparator>
 bool HASH_TABLE_BUCKET_TYPE::Insert(KeyType key, ValueType value, KeyComparator cmp) {
   std::vector<uint32_t> available_bucket_idx;
   uint32_t bucket_idx =0;
+  // if exist
   for( ; bucket_idx< BUCKET_ARRAY_SIZE; bucket_idx++){
     if(!IsOccupied(bucket_idx)){
       break;

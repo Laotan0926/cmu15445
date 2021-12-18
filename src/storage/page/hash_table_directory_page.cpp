@@ -52,7 +52,14 @@ uint32_t HashTableDirectoryPage::Size() {
   return 0x1<<global_depth_; 
 }
 
-bool HashTableDirectoryPage::CanShrink() { return false; }
+bool HashTableDirectoryPage::CanShrink() {
+  for(size_t i = 0 ;i<Size() ;i++){
+    if(local_depths_[i]>=global_depth_){
+      return false;
+    }
+  } 
+  return true; 
+}
 
 uint32_t HashTableDirectoryPage::GetLocalDepth(uint32_t bucket_idx) { 
   return local_depths_[bucket_idx]; 
