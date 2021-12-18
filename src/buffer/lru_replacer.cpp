@@ -21,6 +21,7 @@ LRUReplacer::~LRUReplacer() = default;
 bool LRUReplacer::Victim(frame_id_t *frame_id) {
   std::lock_guard<std::mutex> lock(mutex_);
   if(lru_list_.empty()){
+    *frame_id = INVALID_PAGE_ID;
     return false;
   }
   *frame_id = lru_list_.back();
