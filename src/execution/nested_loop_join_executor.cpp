@@ -29,13 +29,12 @@ void NestedLoopJoinExecutor::Init() {
 
 bool NestedLoopJoinExecutor::Next(Tuple *tuple, RID *rid) {
     RID left_rid, right_rid;
-
+    //初始left_rid
     if(left_tuple_.GetLength()==0&&!left_executor_->Next(&left_tuple_,&left_rid)){
         return false;
     }
 
     do{
-
         if(!right_executor_->Next(&right_tuple_,&right_rid)){
             if(!left_executor_->Next(&left_tuple_,&left_rid)){
                 return false;
@@ -56,7 +55,6 @@ bool NestedLoopJoinExecutor::Next(Tuple *tuple, RID *rid) {
         values.emplace_back(col_expr->EvaluateJoin(&left_tuple_, left_executor_->GetOutputSchema(), &right_tuple_,
                                                       right_executor_->GetOutputSchema()));
     }
-
     *tuple = Tuple(values, plan_->OutputSchema());
     return true; 
 }

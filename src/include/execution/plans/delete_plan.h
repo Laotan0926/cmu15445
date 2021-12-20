@@ -49,6 +49,7 @@ class DeletePlanNode : public AbstractPlanNode {
  private:
   /** The identifier of the table from which tuples are deleted */
   table_oid_t table_oid_;
+  
 };
 
 }  // namespace bustub

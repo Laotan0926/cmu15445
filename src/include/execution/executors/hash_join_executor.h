@@ -15,10 +15,53 @@
 #include <memory>
 #include <utility>
 
+#include "common/util/hash_util.h"
 #include "execution/executor_context.h"
 #include "execution/executors/abstract_executor.h"
 #include "execution/plans/hash_join_plan.h"
 #include "storage/table/tuple.h"
+#include "execution/expressions/abstract_expression.h"
+#include "execution/expressions/column_value_expression.h"
+
+namespace bustub {
+
+struct HashKey {
+  Value distin_bys_;
+  /**
+   * Compares two aggregate keys for equality.
+   * @param other the other aggregate key to be compared with
+   * @return `true` if both aggregate keys have equivalent group-by expressions, `false` otherwise
+   */
+  bool operator==(const HashKey &other) const {
+    if(distin_bys_.CompareEquals(other.distin_bys_) != CmpBool::CmpTrue) {
+        return false;
+    }
+    return true;
+  }
+};
+
+struct HashKeyValue {
+  /** The aggregate values */
+  std::vector<Value> sistinct_;
+};
+
+}
+
+namespace std {
+/** Implements std::hash on DistinctKey */
+template <>
+struct hash<bustub::HashKey> {
+  std::size_t operator()(const bustub::HashKey &agg_key) const {
+    size_t curr_hash = 0;
+    auto &key = agg_key.distin_bys_;
+    if (!key.IsNull()) {
+      curr_hash = bustub::HashUtil::CombineHashes(curr_hash, bustub::HashUtil::HashValue(&key));
+    }
+    return curr_hash;
+  }
+};
+
+}  // namespace std
 
 namespace bustub {
 
@@ -57,8 +100,9 @@ class HashJoinExecutor : public AbstractExecutor {
   std::unique_ptr<AbstractExecutor> left_executor_;
   std::unique_ptr<AbstractExecutor> right_executor_;
 
-  //std::unordered_multimap<std::vector<Value>,std::vector<Value>> hash_map_;
-  //std::unordered_multimap<std::vector<Value>,std::vector<Value>>::iterator  iter_;
+  std::unordered_map<HashKey,std::vector<std::vector<Value>>> hash_map_;
+  std::vector<std::vector<Value>> outtable_buffer_;
+  std::size_t next_pos_{0};
 };
 
 }  // namespace bustub

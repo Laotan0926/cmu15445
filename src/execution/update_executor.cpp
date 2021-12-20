@@ -19,41 +19,40 @@ UpdateExecutor::UpdateExecutor(ExecutorContext *exec_ctx, const UpdatePlanNode *
                                std::unique_ptr<AbstractExecutor> &&child_executor)
     : AbstractExecutor(exec_ctx),
     plan_(plan),
-    table_info_(exec_ctx->GetCatalog()->GetTable(plan->TableOid()) ),
-    child_executor_(std::move(child_executor)) {}
+    child_executor_(std::move(child_executor)) {
+      table_info_ = exec_ctx->GetCatalog()->GetTable(plan->TableOid());
+      table_indexs_ = exec_ctx_->GetCatalog()->GetTableIndexes(table_info_->name_);
+    }
 
-void UpdateExecutor::Init() {}
+void UpdateExecutor::Init() {
+  child_executor_->Init();
+}
 
 bool UpdateExecutor::Next([[maybe_unused]] Tuple *tuple, RID *rid) {
-  TableHeap* table_heap = table_info_->table_.get();
-  const Schema* table_schema = &table_info_->schema_;
-
   Tuple old_tuple;
   if(!child_executor_->Next(&old_tuple,rid)){
     return false;
   }
-
+  //回表查询
   if(!table_info_->table_->GetTuple(*rid, &old_tuple, exec_ctx_->GetTransaction())){
     return false;
   }
-
+  //生成新
   *tuple = GenerateUpdatedTuple(old_tuple);
   
   bool isupdated = true;
   //插入
-  isupdated =  table_heap->UpdateTuple(*tuple,*rid,exec_ctx_->GetTransaction());
+  isupdated =  table_info_->table_->UpdateTuple(*tuple,*rid,exec_ctx_->GetTransaction());
   //更改索引
   if(isupdated){
-    std::vector<IndexInfo*> table_indexes = exec_ctx_->GetCatalog()->GetTableIndexes(table_info_->name_);
-    for(auto &table_index: table_indexes){
-      table_index->index_->DeleteEntry(old_tuple.KeyFromTuple(*table_schema,table_index->key_schema_, table_index->index_->GetKeyAttrs())
-              , *rid, exec_ctx_->GetTransaction());
-      table_index->index_->InsertEntry(tuple->KeyFromTuple(*table_schema,table_index->key_schema_, table_index->index_->GetKeyAttrs())
-              , *rid, exec_ctx_->GetTransaction());
+    for(auto &table_index: table_indexs_){
+      auto key_old_tuple = old_tuple.KeyFromTuple(table_info_->schema_,table_index->key_schema_, table_index->index_->GetKeyAttrs());
+      table_index->index_->DeleteEntry(key_old_tuple, *rid, exec_ctx_->GetTransaction());
+      auto key_tuple = tuple->KeyFromTuple(table_info_->schema_,table_index->key_schema_, table_index->index_->GetKeyAttrs());
+      table_index->index_->InsertEntry(key_tuple, *rid, exec_ctx_->GetTransaction());
     }
   }
-
-  //std::cout<<tuple->ToString(table_schema)<<std::endl;
+  //
   return isupdated; 
 }
 

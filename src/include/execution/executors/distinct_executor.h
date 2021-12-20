@@ -20,6 +20,53 @@
 
 namespace bustub {
 
+struct DistinctKey {
+  /** The group-by values */
+  std::vector<Value> distin_bys_;
+
+  /**
+   * Compares two aggregate keys for equality.
+   * @param other the other aggregate key to be compared with
+   * @return `true` if both aggregate keys have equivalent group-by expressions, `false` otherwise
+   */
+  bool operator==(const DistinctKey &other) const {
+    for (uint32_t i = 0; i < other.distin_bys_.size(); i++) {
+      if (distin_bys_[i].CompareEquals(other.distin_bys_[i]) != CmpBool::CmpTrue) {
+        return false;
+      }
+    }
+    return true;
+  }
+};
+
+/** AggregateValue represents a value for each of the running aggregates */
+struct DistinctValue {
+  /** The aggregate values */
+  std::vector<Value> sistinct_;
+};
+
+}
+
+namespace std {
+/** Implements std::hash on DistinctKey */
+template <>
+struct hash<bustub::DistinctKey> {
+  std::size_t operator()(const bustub::DistinctKey &agg_key) const {
+    size_t curr_hash = 0;
+    for (const auto &key : agg_key.distin_bys_) {
+      if (!key.IsNull()) {
+        curr_hash = bustub::HashUtil::CombineHashes(curr_hash, bustub::HashUtil::HashValue(&key));
+      }
+    }
+    return curr_hash;
+  }
+};
+
+}  // namespace std
+
+
+namespace bustub {
+
 /**
  * DistinctExecutor removes duplicate rows from child ouput.
  */
@@ -80,3 +127,4 @@ private:
   std::unordered_map<DistinctKey,DistinctValue> hash_map_;
 };
 }  // namespace bustub
+

@@ -20,37 +20,39 @@ InsertExecutor::InsertExecutor(ExecutorContext *exec_ctx, const InsertPlanNode *
                                std::unique_ptr<AbstractExecutor> &&child_executor)
     : AbstractExecutor(exec_ctx),
     plan_(plan),
-    child_executor_(std::move(child_executor)) {}
+    child_executor_(std::move(child_executor)) {
+        table_info_ = exec_ctx_->GetCatalog()->GetTable(plan_->TableOid());
+        table_indexs_ = exec_ctx_->GetCatalog()->GetTableIndexes(table_info_->name_);
+    }
 
-void InsertExecutor::Init() {}
+void InsertExecutor::Init() {
+    if(child_executor_!=nullptr){
+        child_executor_->Init();
+    }
+}
 
 bool InsertExecutor::Next([[maybe_unused]] Tuple *tuple, RID *rid) { 
-    table_oid_t table_oid =  plan_->TableOid();
-    TableInfo* table_info = exec_ctx_->GetCatalog()->GetTable(table_oid);
-    TableHeap* table_heap = table_info->table_.get();
-    Schema* table_schema = &table_info->schema_;
     bool isinserted = true;
 
     if(plan_->IsRawInsert()){
-        if(insert_next>=plan_->RawValues().size()){
+        if(insert_next_>=plan_->RawValues().size()){
             return false;
         }else{
-            const std::vector<Value> &raw_val = plan_->RawValuesAt(insert_next); 
-            tuple = new Tuple(raw_val, table_schema);
-            ++insert_next;
+            const std::vector<Value> &raw_val = plan_->RawValuesAt(insert_next_); 
+            *tuple = Tuple(raw_val, &table_info_->schema_);
+            ++insert_next_;
         }
     }else{
         if(!child_executor_->Next(tuple,rid)){
             return false;
         }
     }
-    isinserted = table_heap->InsertTuple(*tuple,rid,exec_ctx_->GetTransaction());
-    // index insert
+    isinserted = table_info_->table_->InsertTuple(*tuple,rid,exec_ctx_->GetTransaction());
+    // 索引插入
     if(isinserted){
-        std::vector<IndexInfo*> table_indexes = exec_ctx_->GetCatalog()->GetTableIndexes(table_info->name_);
-        for(auto &table_index: table_indexes){
-            table_index->index_->InsertEntry(tuple->KeyFromTuple(*table_schema,table_index->key_schema_, table_index->index_->GetKeyAttrs() )
-                            , *rid, exec_ctx_->GetTransaction());
+        for(auto &table_index: table_indexs_){
+            auto key_index = tuple->KeyFromTuple(table_info_->schema_,table_index->key_schema_, table_index->index_->GetKeyAttrs());
+            table_index->index_->InsertEntry( key_index, *rid, exec_ctx_->GetTransaction());
         }
     }
     return isinserted;
